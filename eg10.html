@@ -1,0 +1,602 @@
+<!Doctype>
+<html lang="en">
+<head>
+<meta charset='utf-8'>
+<title>AJAX EXAMPLES</title>
+<style>
+.tmjrock_modalMask
+{
+padding: 20px;
+width:100%;
+hieght:100px;
+top:0;
+left:0;
+bottom:0;
+right:0;
+border: 2px solid red;
+background : gray;
+position : fixed;
+opacity:80%;
+}
+.tmjrock_modal
+{
+border-radius: 4px;
+background: #73AD21;
+width:400px;
+min-width:400px;
+height:300px;
+min-height:300px;
+top:0;
+left:0;
+bottom:0;
+right:0;
+border: 2px solid black;
+background : white;
+position : fixed;
+margin:auto;
+}
+
+.tmjrock_closeButton
+{
+float:right;
+font-size:15px;
+padding:5px 7px;
+margin-right:5px;
+margin-top:5px;
+cursor:pointer;
+}
+</style>
+<script>
+//TMJROCK parts starts here
+function $$$(cid)
+{
+var element = document.getElementById(cid);
+if(!element) throw "invalid Id "+cid;
+return new TMJRockElement(element);
+}
+
+function TMJRockElement(element)
+{
+this.element = element;
+this.html = function(content)
+{
+if((typeof this.element.innerHTML)=="string")
+{
+if((typeof content)=="string")
+{
+this.element.innerHTML = content;
+}
+return this.element.innerHTML;
+}
+}//html function ends
+this.value = function(content)
+{
+if(this.element.value)
+{
+if((typeof content)=="string")
+{
+this.element.innerHTML = content;
+}
+return this.element.value;
+}
+}//value function ends;
+}//TMJRockElement class ends;
+
+
+$$$.ajax = function(jsonObject){
+if(!jsonObject["url"]) throw "Url property is missing in call to ajax";
+let url = jsonObject["url"];
+if((typeof url)!= "string") throw "url property should be of String type";
+if(!jsonObject["methodType"]) throw "method type is missing in call to ajax";
+let methodType = "GET";
+methodType = jsonObject["methodType"];
+methodType = methodType.toUpperCase();
+if(['GET','POST'].includes(methodType)==false) throw "method type should be GET/POST in call to ajax";
+let onSuccess = jsonObject["onSuccess"];
+if(!jsonObject["onSuccess"]) throw "onSuccess function should be in ajax call";
+let onFailure = jsonObject["onFailure"];
+if(!jsonObject["onFailure"]) throw "onFailure function should be in ajax call";
+if(jsonObject["data"])
+{
+var jsondata = jsonObject["data"];
+var xx=0;
+var queryString;
+for(k in jsondata)
+{
+if(xx==0)queryString="?";
+if(xx>0) queryString=queryString+"&";
+xx++;
+var qsName=encodeURI(k);
+var qsValue = encodeURI(jsondata[k]);
+queryString = queryString+qsName+"="+qsValue;
+}
+url=url+queryString;
+}
+var xmlHttpRequest = new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+var responseData = this.responseText;
+if(responseData) onSuccess(responseData);
+}
+else
+{
+onFailure();
+}
+}
+}
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.send();
+}//ajax function ends
+
+
+$$$.model={
+"onStartup":[],
+"accordians":[],
+"modals":[]
+}
+
+$$$.modals={};
+//MODAL SPEACIFIC CODE STARTS HERE
+$$$.modals.show=function(mid){
+var i;
+var modals=null;
+for(i=0;i<$$$.model.modals.length;i++)
+{
+if($$$.model.modals[i].getContentId()==mid) 
+{
+modals=$$$.model.modals[i];
+break;
+}
+}
+modals.show();
+}
+
+/*function $$$(mid)
+{
+var i;
+for(i=0;i<ds.modals.length;i++)
+{
+if(ds.modals[i].getContentId()==mid) return ds.modals[i];
+}
+}
+*/
+
+function Modal(cref)
+{
+var objectAddress=this;
+this.beforeOpening = null;
+this.afterOpening = null;
+this.beforeClosing = null;
+this.afterClosing = null;
+var contentReference = cref;
+objectAddress.getContentId = function(){
+return  contentReference.id;
+}
+
+var modalMaskDivision = document.createElement('DIV');
+modalMaskDivision.classList.add('tmjrock_modalMask');
+modalMaskDivision.style.display ="none";
+var modalDivision = document.createElement('DIV');
+modalDivision.classList.add('tmjrock_modal');
+modalDivision.style.display ="none";
+document.body.append(modalMaskDivision);
+document.body.append(modalDivision);
+
+if(cref.hasAttribute("size"))
+{
+var sz = cref.getAttribute("size");
+var xpos = sz.indexOf("x");
+if(xpos==-1) xpos = sz.indexOf("X");
+if(xpos==-1) throw "size is not speacified properly";
+if(xpos==0||xpos==sz.length-1) throw "size is not speacified properly";
+var width = sz.substring(0,xpos);
+var height = sz.substring(xpos+1);  
+modalDivision.style.width=width+"px";
+modalDivision.style.height=height+"px";
+}
+else
+{
+modalDivision.style.width="400px";
+modalDivision.style.height="300px";
+}
+
+var headerDivision = document.createElement("div");
+headerDivision.style.background='red';
+headerDivision.style.right = "0";
+headerDivision.style.height = "40px";
+headerDivision.style.padding = "5px";
+modalDivision.appendChild(headerDivision);
+
+var footerDivision = document.createElement("div");
+footerDivision.style.background='pink';
+footerDivision.style.right = "0";
+footerDivision.style.left = "0";
+footerDivision.style.height = "40px";
+footerDivision.style.position = "absolute";
+footerDivision.style.bottom = "0";
+footerDivision.style.padding = "5px";
+modalDivision.appendChild(footerDivision);
+
+var contentDivision = document.createElement("DIV");
+var contentDivisionHeight = (modalDivision.style.height.substring(0,modalDivision.style.height.length-2)-20+"px");
+contentDivision.style.height = contentDivisionHeight; 
+contentDivision.style.border = "1px solid black"; 
+contentDivision.style.overflow = "scroll"; 
+contentReference.style.display="block";
+contentReference.style.visiblity="visible";
+//contentReference.remove();
+contentDivision.appendChild(contentReference);
+modalDivision.append(contentDivision);
+
+if(cref.hasAttribute("header"))
+{
+var hd = cref.getAttribute("header");
+headerDivision.innerHTML=hd;
+}
+
+if(cref.hasAttribute("footer"))
+{
+var ft = cref.getAttribute("footer");
+footerDivision.innerHTML=ft;
+}
+
+if(cref.hasAttribute("maskColor"))
+{
+var mc = cref.getAttribute("maskColor");
+modalMaskDivision.style.background=mc;
+}
+
+if(cref.hasAttribute("modalBackgroundColor"))
+{
+var mbc = cref.getAttribute("modalBackgroundColor");
+modalDivision.style.background=mbc;
+}
+
+var closeButtonSpan=null;
+if(cref.hasAttribute("closeButton"))
+{
+var cb = cref.getAttribute("closeButton");
+if(cb.toUpperCase()=="TRUE")
+{
+closeButtonSpan = document.createElement("span");
+var closeButtonMarker = document.createTextNode("x");
+closeButtonSpan.appendChild(closeButtonMarker);
+closeButtonSpan.classList.add('tmjrock_closeButton');
+headerDivision.appendChild(closeButtonSpan);
+}
+}
+
+if(cref.hasAttribute("beforeOpening"))
+{
+var oo = cref.getAttribute("beforeOpening");
+this.beforeOpening = oo;
+}
+
+if(cref.hasAttribute("afterOpening"))
+{
+var oo = cref.getAttribute("afterOpening");
+this.afterOpening = oo;
+}
+
+if(cref.hasAttribute("beforeClosing"))
+{
+var oc = cref.getAttribute("beforeClosing");
+this.beforeClosing = oc;
+}
+
+if(cref.hasAttribute("afterClosing"))
+{
+var oc = cref.getAttribute("afterClosing");
+this.afterClosing = oc;
+}
+
+this.show= function()
+{
+let openModal=true;
+if(objectAddress.beforeOpening) 
+{
+openModal=eval(objectAddress.beforeOpening);
+}
+if(openModal)
+{
+if(objectAddress.afterOpening) setTimeout(function(){eval(objectAddress.afterOpening)},100);
+modalMaskDivision.style.display="block";
+modalDivision.style.display="block";
+//document.body.appendChild(modalMaskDivision);
+//modalMaskDivision.appendChild(modalDivision);
+}
+};
+
+if(closeButtonSpan!=null)
+{
+closeButtonSpan.onclick = function(){
+var closeModal = true;
+if(objectAddress.beforeClosing)
+{
+closeModal = eval(objectAddress.beforeClosing)
+}
+if(closeModal)
+{
+if(objectAddress.afterClosing) eval(objectAddress.afterClosing); 
+modalMaskDivision.style.display="none";
+modalDivision.style.display="none";
+//modalDivision.remove();
+//modalMaskDivision.remove();
+}
+}
+};
+}//Modal class ends
+
+//MODAL SPEACIFIC CODE ENDS HERE
+
+$$$.accordianHeadingClicked = function(panelIndex,accordianIndex){
+if($$$.model.accordians[accordianIndex].expandedIndex!=-1)
+{
+$$$.model.accordians[accordianIndex].panels[$$$.model.accordians[accordianIndex].expandedIndex+1].style.display='none';
+}
+$$$.model.accordians[accordianIndex].panels[panelIndex+1].style.display = $$$.model.accordians[accordianIndex].panels[panelIndex+1].oldDisplay;
+$$$.model.accordians[accordianIndex].expandedIndex=panelIndex;
+
+}//accordianHeadingClicked ends
+
+$$$.onDocumentLoaded= function(func){
+if((typeof func)!="function") throw "function Expected,found "+(typeof func)+" on call to document loaded";
+$$$.model.onStartup[$$$.model.onStartup.length]= func;
+}//onDocumentLoaded ends
+
+$$$.toAccordian = function(accord){
+var panels=[];
+var expandedIndex=-1;
+//let accord = document.getElementById(aid);
+let children = accord.childNodes;
+let x=0;
+for(x=0;x<children.length;x++)
+{
+if(children[x].nodeName=="H3")
+{
+panels[panels.length]=children[x];
+}
+if(children[x].nodeName=="DIV")
+{
+panels[panels.length]=children[x];
+}
+}//1st for loop ends
+
+if(panels.length%2!=0) throw "heading and division malformed to create accordian";
+for(x=0;x<panels.length;x+=2)
+{
+if(panels[x].nodeName!="H3") throw "heading and division malformed to create accordian";
+if(panels[x+1].nodeName!="DIV") throw "heading and division malformed to create accordian";
+}
+
+function createClickHandler(panelIndex,accordianIndex)
+{
+return function(){
+$$$.accordianHeadingClicked(panelIndex,accordianIndex);
+};
+}
+
+var accordianIndex = $$$.model.accordians.length;
+for(x=0;x<panels.length;x+=2)
+{
+panels[x].onclick= createClickHandler(x,accordianIndex);
+panels[x+1].oldDisplay = panels[x+1].style.display;
+panels[x+1].style.display = "none";
+}
+
+$$$.model.accordians[accordianIndex]={
+"panels":panels,
+"expandedIndex":expandedIndex
+}
+}//toAccordian ends
+
+$$$.initFramework = function(){
+var allTags = document.getElementsByTagName("*");
+let i;
+let a;
+let t;
+for(i=0;i<allTags.length;i++)
+{
+a = allTags[i];
+if(a.hasAttribute("accordian"))
+{
+t = a.getAttribute("accordian");
+if(t=='true')
+{
+$$$.toAccordian(a);
+}
+}
+}
+
+//setting up modal part starts here
+var all = document.getElementsByTagName("*");
+//var i;
+for(i=0;i<all.length;i++)
+{
+if(all[i].hasAttribute("forModal"))
+{
+if(all[i].getAttribute("forModal").toUpperCase()=="TRUE")
+{
+all[i].setAttribute("forModal","false");
+$$$.model.modals[$$$.model.modals.length]=new Modal(all[i]);
+i--;
+}
+}
+}
+//setting up modal part ends here
+
+}//initFramework ends
+
+window.addEventListener("load",$$$.initFramework);
+
+//TMJROCK parts ends here
+//*******************************
+//user defined functions
+
+function abBeforeOpening()
+{
+alert("modal with ab is about to opened");
+return true;
+}
+
+function abOpen()
+{
+alert("onOpen get called");
+}
+
+function abBeforeClosing()
+{
+alert("modal with ab is about to closed");
+return true;
+}
+
+function abClose()
+{
+alert("onClose get called");
+}
+
+function createModal1()
+{
+$$$.modals.show("ab");
+}
+
+
+function xyz()
+{
+var xx= document.getElementById('myText');
+alert(xx);
+}
+
+
+
+
+</script>
+</head>
+<body>
+<div  accordian=true>
+<h3 style='cursor:pointer'>Heading 1 red color</h3>
+<div style='color:red'>
+1 whatever however nothing 
+2 whatever however nothing
+3 whatever however nothing
+4 whatever however nothing
+5 whatever however nothing
+6 whatever however nothing
+7 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 2 green color</h3>
+<div style='color:green'>
+12 whatever however nothing 
+22 whatever however nothing
+32 whatever however nothing
+42 whatever however nothing
+52 whatever however nothing
+62 whatever however nothing
+72 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 3 blue color</h3>
+<div style='color:blue'>
+13 whatever however nothing 
+23 whatever however nothing
+33 whatever however nothing
+43 whatever however nothing
+53 whatever however nothing
+63 whatever however nothing
+73 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 4 orange color</h3>
+<div style='color:orange'>
+14 whatever however nothing 
+24 whatever however nothing
+34 whatever however nothing
+44 whatever however nothing
+54 whatever however nothing
+64 whatever however nothing
+74 whatever however nothing
+</div>
+</div>
+
+
+<div accordian=true>
+<h3 style='cursor:pointer'>Heading 1 red color</h3>
+<div style='color:red'>
+1 whatever however nothing 
+2 whatever however nothing
+3 whatever however nothing
+4 whatever however nothing
+5 whatever however nothing
+6 whatever however nothing
+7 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 2 green color</h3>
+<div style='color:green'>
+12 whatever however nothing 
+22 whatever however nothing
+32 whatever however nothing
+42 whatever however nothing
+52 whatever however nothing
+62 whatever however nothing
+72 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 3 blue color</h3>
+<div style='color:blue'>
+13 whatever however nothing 
+23 whatever however nothing
+33 whatever however nothing
+43 whatever however nothing
+53 whatever however nothing
+63 whatever however nothing
+73 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 4 orange color</h3>
+<div style='color:orange'>
+14 whatever however nothing 
+24 whatever however nothing
+34 whatever however nothing
+44 whatever however nothing
+54 whatever however nothing
+64 whatever however nothing
+74 whatever however nothing
+</div>
+</div>
+
+<button onclick='createModal1()'>Show Modal</button>
+<div style='display:none' id='ab' forModal="true" header="someHeading" footer="someFooter"
+size="500x200" closeButton="true" maskColor="yellow" modalBackgroundColor="orange"
+beforeOpening ="abBeforeOpening()"
+afterOpening = "abOpen()"
+beforeClosing ="abBeforeClosing()"
+afterClosing = "abClose()"
+style='padding:5px'>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+<input type = 'text' id='myText'>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+God is great<br>
+Last line
+</div>
+<button onclick=xyz()>cool</button>
+</body>
+</html>

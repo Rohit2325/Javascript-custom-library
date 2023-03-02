@@ -1,0 +1,116 @@
+<!Doctype HTML>
+<html lang= 'en'>
+<head>
+<meta charset = 'utf-8'>
+<title>
+AJAX EXAMPLES
+</title>
+<script>
+//TMJROCK parts starts here
+function $$$(cid)
+{
+var element = document.getElementById(cid);
+if(!element) throw "invalid Id "+cid;
+return new TMJRockElement(element);
+}
+
+function TMJRockElement(element)
+{
+this.element = element;
+this.html = function(content)
+{
+if((typeof this.element.innerHTML)=="string")
+{
+if((typeof content)=="string")
+{
+this.element.innerHTML = content;
+}
+return this.element.innerHTML;
+}
+}//html function ends
+this.value = function(content)
+{
+if(this.element.value)
+{
+if((typeof content)=="string")
+{
+this.element.innerHTML = content;
+}
+return this.element.value;
+}
+}//value function ends;
+}//TMJRockElement class ends;
+
+
+$$$.ajax = function(jsonObject){
+if(!jsonObject["url"]) throw "Url property is missing in call to ajax";
+let url = jsonObject["url"];
+if((typeof url)!= "string") throw "url property should be of String type";
+if(!jsonObject["methodType"]) throw "method type is missing in call to ajax";
+let methodType = "GET";
+methodType = jsonObject["methodType"];
+methodType = methodType.toUpperCase();
+if(['GET','POST'].includes(methodType)==false) throw "method type should be GET/POST in call to ajax";
+let onSuccess = jsonObject["onSuccess"];
+if(!jsonObject["onSuccess"]) throw "onSuccess function should be in ajax call";
+let onFailure = jsonObject["onFailure"];
+if(!jsonObject["onFailure"]) throw "onFailure function should be in ajax call";
+var xmlHttpRequest = new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+var responseData = this.responseText;
+if(responseData) onSuccess(responseData);
+}
+else
+{
+onFailure();
+}
+}
+}
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.send();
+}//ajax function ends
+//TMJROCK parts ends here
+
+
+
+function getDesignation()
+{
+var titleSpan = $$$("title");
+titleSpan.html("");
+var code = $$$("code").value();
+$$$.ajax({
+"url":"servletTwo?code="+encodeURI(code),
+"methodType":"GET",
+"onSuccess":function(responseData)
+{
+if(responseData=="INVALID")
+{
+titleSpan.html("INVALID CODE");
+}
+var splits = responseData.split(",");
+titleSpan.html(splits[1]);
+},
+"onFailure":function()
+{
+alert("Invalid");
+}
+});
+}
+</script>
+</head>
+<body>
+<h1>Get Type Request Example..</h1><br>
+Code
+<input type='text' id='code'>
+<button onclick='getDesignation()'>Get Designations</button>
+<br>
+<br>
+<span id='title' style='color:Red'></span>
+<a href='/TMJRock/index.html'></a>
+</body>
+</html>

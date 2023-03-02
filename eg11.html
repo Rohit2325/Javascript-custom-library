@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+TMGRID Prototyping 
+</title>
+<style>
+.tmjrock_tmjrockgrid_header_division
+{
+background-color:gray;
+overflow-x:hidden;
+overflow-y:hidden;
+}
+.tmjrock_tmgrid_body_division
+{
+overflow-x:auto;
+overflow-y:auto;
+height:250px;
+}
+.tmjrock_tmgrid_head
+{
+border : 1px groove green;
+border : 0px ;
+border-collapse:collapse;
+width:530px;
+}
+.tmjrock_tmgrid_head td
+{
+border : 1px groove red;
+width:50px;
+text-align:right;
+border-right : 1px groove red;
+border-left : 1px groove red;
+border-top : 1px groove red;
+border-bottom : 0px;
+}
+
+.tmjrock_tmgrid_head td+td
+{
+border : 1px groove red;
+width:100px;
+text-align:left;
+border-bottom : 0px;
+}
+
+.tmjrock_tmgrid_head td+td+td
+{
+border : 1px groove red;
+width:80px;
+text-align:left;
+border-bottom : 0px;
+}
+
+.tmjrock_tmgrid_head td+td+td+td
+{
+border : 1px groove red;
+width:150px;
+text-align:left;
+border-bottom : 0px;
+}
+
+.tmjrock_tmgrid_head td+td+td+td+td
+{
+border : 1px groove red;
+width:150px;
+text-align:left;
+border-bottom : 0px;
+} 	
+
+
+.tmjrock_tmgrid_body
+{
+border : 1px groove green;
+border-collapse:collapse;
+width:530px;
+}
+.tmjrock_tmgrid_body td
+{
+border : 1px groove red;
+width:50px;
+text-align:right;
+}
+
+.tmjrock_tmgrid_body td+td
+{
+border : 1px groove red;
+width:100px;
+text-align:left;
+}
+
+.tmjrock_tmgrid_body td+td+td
+{
+border : 1px groove red;
+width:80px;
+text-align:left;
+}
+
+.tmjrock_tmgrid_body td+td+td+td
+{
+border : 1px groove red;
+width:150px;
+text-align:left;
+}
+
+.tmjrock_tmgrid_body td+td+td+td+td
+{
+border : 1px groove red;
+width:150px;
+text-align:left;
+}
+
+.tmjrock_tmgrid_pagination_division
+{
+margin-top:10px;
+}
+
+.tmjrock_tmgrid_pagination td
+{
+width: 70px;
+text-align: center;
+}
+
+.tmjrock_tmgrid_pagination a
+{
+background-color:red;
+color: white;
+padding:5px;
+text-decoration:none;
+border:1px dotted blue;
+text-transform:upperCase;
+}
+
+</style>
+
+<script>
+
+class student
+{
+constructor(rollNo,name,motherName,fatherName)
+{
+this.rollNumber=rollNo;
+this.name=name;
+this.motherName=motherName;
+this.fatherName=fatherName;
+}
+}
+
+class Grid
+{
+constructor(dataTableId,dataTablePaginationId,students,pageSize)
+{
+this.dataTableId=dataTableId;
+this.dataTablePaginationId=dataTablePaginationId;
+this.students=students;
+this.pageSize=pageSize;
+this.pageNumber=1
+this.numberOfPaginationControls=5
+this.update();
+this.updatePagination();
+}
+setPage(pageNumber)
+{
+this.pageNumber=pageNumber;
+this.update();
+this.updatePagination();
+}
+
+update()
+{
+var dataTable= document.getElementById(this.dataTableId);
+while(dataTable.rows.length>0) dataTable.deleteRow(0);
+var tr;
+var td;
+var startFromIndex;
+var endAtIndex;
+startFromIndex = (this.pageNumber-1)*this.pageSize;
+endAtIndex = (startFromIndex+this.pageSize)-1;
+for(var x=startFromIndex;x<endAtIndex;x++)
+{
+tr= document.createElement("tr");
+td = document.createElement("td");
+td.innerHTML=(x+1);
+tr.appendChild(td);
+td = document.createElement("td");
+td.innerHTML= this.students[x].rollNumber;
+tr.appendChild(td);
+td = document.createElement("td");
+td.innerHTML= this.students[x].name;
+tr.appendChild(td);
+td = document.createElement("td");
+td.innerHTML= this.students[x].motherName;
+tr.appendChild(td);
+td = document.createElement("td");
+td.innerHTML= this.students[x].fatherName;
+tr.appendChild(td);
+dataTable.appendChild(tr);
+}
+}
+updatePagination()
+{
+function createChangePageFunction(obj,pageNumber)
+{
+return function(){
+obj.setPage(pageNumber);
+}
+};
+var startFrom = Math.floor((((this.pageNumber-1)/this.numberOfPaginationControls)+1)-1)*this.numberOfPaginationControls+1;
+var endAt = (startFrom+this.numberOfPaginationControls)-1
+var numberOfPages = Math.floor((this.students.length/this.pageSize));
+if(this.students.length%this.pageSize!=0) numberOfPages++;
+if(endAt>numberOfPages) endAt = numberOfPages;
+var dataTablePagination = document.getElementById(this.dataTablePaginationId);
+while(dataTablePagination.rows.length>0) dataTablePagination.deleteRow(0);
+
+var tr = document.createElement("tr");
+if(startFrom>1)
+{
+td = document.createElement("td");
+anchor = document.createElement("a");
+anchor.text="prev";
+anchor.href='javascript:void(0)';
+anchor.onclick= createChangePageFunction(this,startFrom-1,); 
+td.appendChild(anchor);
+tr.appendChild(td);
+}
+
+var td;
+var anchor;
+for(var x=startFrom;x<=endAt;x++)
+{
+if(x==this.pageNumber)
+{
+td = document.createElement('td');
+td.innerHTML= x;
+tr.appendChild(td);
+}
+else
+{
+td = document.createElement("td");
+anchor = document.createElement("a");
+anchor.text=x;
+anchor.href="javascript:void(0)"
+anchor.onclick = createChangePageFunction(this,x);
+td.appendChild(anchor);
+tr.appendChild(td);
+}
+}
+if(endAt<numberOfPages)
+{
+td = document.createElement("td");
+anchor = document.createElement("a");
+anchor.text="next";
+anchor.href='javascript:void(0)';
+anchor.onclick= createChangePageFunction(this,endAt+1,); 
+td.appendChild(anchor);
+tr.appendChild(td);
+}
+
+dataTablePagination.appendChild(tr);
+}
+}
+
+var model={
+grid:null
+}
+
+function loader()
+{
+var tmjrock_tmjrockgrid_header_division= document.querySelector(".tmjrock_tmjrockgrid_header_division");
+var tmjrock_tmjrockgrid_body_division= document.querySelector(".tmjrock_tmgrid_body_division");
+ 
+tmjrock_tmjrockgrid_body_division.addEventListener("scroll",function(){
+tmjrock_tmjrockgrid_header_division.scrollLeft=tmjrock_tmjrockgrid_body_division.scrollLeft;
+});
+
+var i;
+var students = new Array();
+for(i=101;i<1000;i++)
+{
+students.push(new student(i,i+" name",i+" mothername",i+" fathername"));
+}
+model.grid=new Grid("dataTable","dataTablePagination",students,15);
+}
+
+window.addEventListener("load",loader);
+</script>
+
+
+<!--user speacific styling-->
+<style>
+.someStyle
+{
+height:600px;
+width:550px;
+border: 1px solid red;
+overflow:scroll;
+}
+</style>
+</head>
+<body>
+<div class ='someStyle'>
+<div class='tmjrock_tmjrockgrid_header_division'>
+<table class='tmjrock_tmgrid_head'>
+<tr>
+<td>SNO</td> 
+<td>Roll NO.</td>
+<td>Name</td>
+<td>mother name</td>
+<td>father name</td>
+</tr>
+</table>
+</div>
+
+<div class='tmjrock_tmgrid_body_division'>
+<table class='tmjrock_tmgrid_body' id='dataTable'>
+</table>
+</div>
+
+<div class='tmjrock_tmgrid_pagination_division'>
+<table class='tmjrock_tmgrid_pagination' id='dataTablePagination'>
+</table>
+</div>
+
+
+
+</div>
+</body>
+
+</html>

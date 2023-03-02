@@ -1,0 +1,281 @@
+<!Doctype>
+<html lang="en">
+<head>
+<meta charset='utf-8'>
+<title>AJAX EXAMPLES</title>
+<script>
+//TMJROCK parts starts here
+function $$$(cid)
+{
+var element = document.getElementById(cid);
+if(!element) throw "invalid Id "+cid;
+return new TMJRockElement(element);
+}
+
+function TMJRockElement(element)
+{
+this.element = element;
+this.html = function(content)
+{
+if((typeof this.element.innerHTML)=="string")
+{
+if((typeof content)=="string")
+{
+this.element.innerHTML = content;
+}
+return this.element.innerHTML;
+}
+}//html function ends
+this.value = function(content)
+{
+if(this.element.value)
+{
+if((typeof content)=="string")
+{
+this.element.innerHTML = content;
+}
+return this.element.value;
+}
+}//value function ends;
+}//TMJRockElement class ends;
+
+
+$$$.ajax = function(jsonObject){
+if(!jsonObject["url"]) throw "Url property is missing in call to ajax";
+let url = jsonObject["url"];
+if((typeof url)!= "string") throw "url property should be of String type";
+if(!jsonObject["methodType"]) throw "method type is missing in call to ajax";
+let methodType = "GET";
+methodType = jsonObject["methodType"];
+methodType = methodType.toUpperCase();
+if(['GET','POST'].includes(methodType)==false) throw "method type should be GET/POST in call to ajax";
+let onSuccess = jsonObject["onSuccess"];
+if(!jsonObject["onSuccess"]) throw "onSuccess function should be in ajax call";
+let onFailure = jsonObject["onFailure"];
+if(!jsonObject["onFailure"]) throw "onFailure function should be in ajax call";
+if(jsonObject["data"])
+{
+var jsondata = jsonObject["data"];
+var xx=0;
+var queryString;
+for(k in jsondata)
+{
+if(xx==0)queryString="?";
+if(xx>0) queryString=queryString+"&";
+xx++;
+var qsName=encodeURI(k);
+var qsValue = encodeURI(jsondata[k]);
+queryString = queryString+qsName+"="+qsValue;
+}
+url=url+queryString;
+}
+var xmlHttpRequest = new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+var responseData = this.responseText;
+if(responseData) onSuccess(responseData);
+}
+else
+{
+onFailure();
+}
+}
+}
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.send();
+}//ajax function ends
+
+
+$$$.model={
+"onStartup":[],
+"accordians":[]
+}
+
+$$$.accordianHeadingClicked = function(panelIndex,accordianIndex){
+if($$$.model.accordians[accordianIndex].expandedIndex!=-1)
+{
+$$$.model.accordians[accordianIndex].panels[$$$.model.accordians[accordianIndex].expandedIndex+1].style.display='none';
+}
+$$$.model.accordians[accordianIndex].panels[panelIndex+1].style.display = $$$.model.accordians[accordianIndex].panels[panelIndex+1].oldDisplay;
+$$$.model.accordians[accordianIndex].expandedIndex=panelIndex;
+
+}//accordianHeadingClicked ends
+
+$$$.onDocumentLoaded= function(func){
+if((typeof func)!="function") throw "function Expected,found "+(typeof func)+" on call to document loaded";
+$$$.model.onStartup[$$$.model.onStartup.length]= func;
+}//onDocumentLoaded ends
+
+$$$.toAccordian = function(accord){
+var panels=[];
+var expandedIndex=-1;
+//let accord = document.getElementById(aid);
+let children = accord.childNodes;
+let x=0;
+for(x=0;x<children.length;x++)
+{
+if(children[x].nodeName=="H3")
+{
+panels[panels.length]=children[x];
+}
+if(children[x].nodeName=="DIV")
+{
+panels[panels.length]=children[x];
+}
+}//1st for loop ends
+
+if(panels.length%2!=0) throw "heading and division malformed to create accordian";
+for(x=0;x<panels.length;x+=2)
+{
+if(panels[x].nodeName!="H3") throw "heading and division malformed to create accordian";
+if(panels[x+1].nodeName!="DIV") throw "heading and division malformed to create accordian";
+}
+
+function createClickHandler(panelIndex,accordianIndex)
+{
+return function(){
+$$$.accordianHeadingClicked(panelIndex,accordianIndex);
+};
+}
+
+var accordianIndex = $$$.model.accordians.length;
+for(x=0;x<panels.length;x+=2)
+{
+panels[x].onclick= createClickHandler(x,accordianIndex);
+panels[x+1].oldDisplay = panels[x+1].style.display;
+panels[x+1].style.display = "none";
+}
+
+$$$.model.accordians[accordianIndex]={
+"panels":panels,
+"expandedIndex":expandedIndex
+}
+}//toAccordian ends
+
+$$$.initFramework = function(){
+var allTags = document.getElementsByTagName("*");
+let i;
+let a;
+let t;
+for(i=0;i<allTags.length;i++)
+{
+a = allTags[i];
+if(a.hasAttribute("accordian"))
+{
+t = a.getAttribute("accordian");
+if(t=='true')
+{
+$$$.toAccordian(a);
+}
+}
+}
+}//initFramework ends
+
+window.addEventListener("load",$$$.initFramework);
+
+//TMJROCK parts ends here
+
+/*
+$$$.onDocumentLoaded(function(){
+$$$.toAccordian("mymy");
+$$$.toAccordian("gogo");
+});
+*/
+</script>
+</head>
+<body>
+<div  accordian=true>
+<h3 style='cursor:pointer'>Heading 1 red color</h3>
+<div style='color:red'>
+1 whatever however nothing 
+2 whatever however nothing
+3 whatever however nothing
+4 whatever however nothing
+5 whatever however nothing
+6 whatever however nothing
+7 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 2 green color</h3>
+<div style='color:green'>
+12 whatever however nothing 
+22 whatever however nothing
+32 whatever however nothing
+42 whatever however nothing
+52 whatever however nothing
+62 whatever however nothing
+72 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 3 blue color</h3>
+<div style='color:blue'>
+13 whatever however nothing 
+23 whatever however nothing
+33 whatever however nothing
+43 whatever however nothing
+53 whatever however nothing
+63 whatever however nothing
+73 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 4 orange color</h3>
+<div style='color:orange'>
+14 whatever however nothing 
+24 whatever however nothing
+34 whatever however nothing
+44 whatever however nothing
+54 whatever however nothing
+64 whatever however nothing
+74 whatever however nothing
+</div>
+</div>
+
+
+<div accordian=true>
+<h3 style='cursor:pointer'>Heading 1 red color</h3>
+<div style='color:red'>
+1 whatever however nothing 
+2 whatever however nothing
+3 whatever however nothing
+4 whatever however nothing
+5 whatever however nothing
+6 whatever however nothing
+7 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 2 green color</h3>
+<div style='color:green'>
+12 whatever however nothing 
+22 whatever however nothing
+32 whatever however nothing
+42 whatever however nothing
+52 whatever however nothing
+62 whatever however nothing
+72 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 3 blue color</h3>
+<div style='color:blue'>
+13 whatever however nothing 
+23 whatever however nothing
+33 whatever however nothing
+43 whatever however nothing
+53 whatever however nothing
+63 whatever however nothing
+73 whatever however nothing
+</div>
+<h3 style='cursor:pointer'>Heading 4 orange color</h3>
+<div style='color:orange'>
+14 whatever however nothing 
+24 whatever however nothing
+34 whatever however nothing
+44 whatever however nothing
+54 whatever however nothing
+64 whatever however nothing
+74 whatever however nothing
+</div>
+</div>
+
+
+
+</body>
+</html>
